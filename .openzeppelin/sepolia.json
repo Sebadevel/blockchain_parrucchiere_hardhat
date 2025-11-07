@@ -1,0 +1,365 @@
+{
+  "manifestVersion": "3.2",
+  "proxies": [
+    {
+      "address": "0x2F774A1E1015C6580534601f414686e6Fe519810",
+      "txHash": "0xea75600892bca0c3e76c005f0cff8f10d4addf2e450ad3232a475197458020d2",
+      "kind": "uups"
+    },
+    {
+      "address": "0xf7aA887834c14bcaF9C0c0d3c5196784cb66E4d5",
+      "txHash": "0xd331148f3af2c1af9e63656a6b3f7812d3a542ad6d3c4e86cc535d1372b458c0",
+      "kind": "uups"
+    }
+  ],
+  "impls": {
+    "1dad441157b907beb3afee50d1d9634bf416f0d5eaca9346f3b33073e9aa3f78": {
+      "address": "0x903b1e4d5a7dbB8bbB10275F9083D3eEF2E7Ee77",
+      "txHash": "0xfd45cfcfd3790439c4566f9e9664274d5d9895891bb4f39effcd70be89ebdf10",
+      "layout": {
+        "solcVersion": "0.8.24",
+        "storage": [
+          {
+            "label": "feeBps",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint96",
+            "contract": "SalonBooking",
+            "src": "contracts/SalonBooking.sol:13"
+          },
+          {
+            "label": "treasury",
+            "offset": 12,
+            "slot": "0",
+            "type": "t_address",
+            "contract": "SalonBooking",
+            "src": "contracts/SalonBooking.sol:14"
+          },
+          {
+            "label": "bookings",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_mapping(t_bytes32,t_struct(Appointment)1478_storage)",
+            "contract": "SalonBooking",
+            "src": "contracts/SalonBooking.sol:22"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_struct(InitializableStorage)73_storage": {
+            "label": "struct Initializable.InitializableStorage",
+            "members": [
+              {
+                "label": "_initialized",
+                "type": "t_uint64",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "_initializing",
+                "type": "t_bool",
+                "offset": 8,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(OwnableStorage)13_storage": {
+            "label": "struct OwnableUpgradeable.OwnableStorage",
+            "members": [
+              {
+                "label": "_owner",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_uint64": {
+            "label": "uint64",
+            "numberOfBytes": "8"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_struct(Appointment)1478_storage)": {
+            "label": "mapping(bytes32 => struct SalonBooking.Appointment)",
+            "numberOfBytes": "32"
+          },
+          "t_string_storage": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_struct(Appointment)1478_storage": {
+            "label": "struct SalonBooking.Appointment",
+            "members": [
+              {
+                "label": "client",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "when",
+                "type": "t_uint64",
+                "offset": 20,
+                "slot": "0"
+              },
+              {
+                "label": "priceWei",
+                "type": "t_uint192",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "service",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "2"
+              }
+            ],
+            "numberOfBytes": "96"
+          },
+          "t_uint192": {
+            "label": "uint192",
+            "numberOfBytes": "24"
+          },
+          "t_uint96": {
+            "label": "uint96",
+            "numberOfBytes": "12"
+          }
+        },
+        "namespaces": {
+          "erc7201:openzeppelin.storage.Ownable": [
+            {
+              "contract": "OwnableUpgradeable",
+              "label": "_owner",
+              "type": "t_address",
+              "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:24",
+              "offset": 0,
+              "slot": "0"
+            }
+          ],
+          "erc7201:openzeppelin.storage.Initializable": [
+            {
+              "contract": "Initializable",
+              "label": "_initialized",
+              "type": "t_uint64",
+              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:69",
+              "offset": 0,
+              "slot": "0"
+            },
+            {
+              "contract": "Initializable",
+              "label": "_initializing",
+              "type": "t_bool",
+              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:73",
+              "offset": 8,
+              "slot": "0"
+            }
+          ]
+        }
+      }
+    },
+    "2d3b9f19b294a54f6bb7d07e057a8365a2e29db84b25409827b8cfe2c2af6ff7": {
+      "address": "0x9FEfdc1529BB29a5125C648cF12928F69F6606fe",
+      "txHash": "0xd168bd4c4759642966c28bbb298d1150fd5da401cfc582f233ddf1d8bac99060",
+      "layout": {
+        "solcVersion": "0.8.24",
+        "storage": [
+          {
+            "label": "feeBps",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint256",
+            "contract": "SalonBooking",
+            "src": "contracts/SalonBooking.sol:11"
+          },
+          {
+            "label": "treasury",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_address",
+            "contract": "SalonBooking",
+            "src": "contracts/SalonBooking.sol:12"
+          },
+          {
+            "label": "lastBookingId",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_uint256",
+            "contract": "SalonBooking",
+            "src": "contracts/SalonBooking.sol:13"
+          },
+          {
+            "label": "bookings",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_mapping(t_uint256,t_struct(Booking)1590_storage)",
+            "contract": "SalonBooking",
+            "src": "contracts/SalonBooking.sol:22"
+          },
+          {
+            "label": "userBookings",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_mapping(t_address,t_array(t_uint256)dyn_storage)",
+            "contract": "SalonBooking",
+            "src": "contracts/SalonBooking.sol:23"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_struct(InitializableStorage)73_storage": {
+            "label": "struct Initializable.InitializableStorage",
+            "members": [
+              {
+                "label": "_initialized",
+                "type": "t_uint64",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "_initializing",
+                "type": "t_bool",
+                "offset": 8,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(OwnableStorage)13_storage": {
+            "label": "struct OwnableUpgradeable.OwnableStorage",
+            "members": [
+              {
+                "label": "_owner",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(ReentrancyGuardStorage)226_storage": {
+            "label": "struct ReentrancyGuardUpgradeable.ReentrancyGuardStorage",
+            "members": [
+              {
+                "label": "_status",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint64": {
+            "label": "uint64",
+            "numberOfBytes": "8"
+          },
+          "t_array(t_uint256)dyn_storage": {
+            "label": "uint256[]",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_array(t_uint256)dyn_storage)": {
+            "label": "mapping(address => uint256[])",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(Booking)1590_storage)": {
+            "label": "mapping(uint256 => struct SalonBooking.Booking)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(Booking)1590_storage": {
+            "label": "struct SalonBooking.Booking",
+            "members": [
+              {
+                "label": "user",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "when",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "amount",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "cancelled",
+                "type": "t_bool",
+                "offset": 0,
+                "slot": "3"
+              }
+            ],
+            "numberOfBytes": "128"
+          }
+        },
+        "namespaces": {
+          "erc7201:openzeppelin.storage.ReentrancyGuard": [
+            {
+              "contract": "ReentrancyGuardUpgradeable",
+              "label": "_status",
+              "type": "t_uint256",
+              "src": "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol:43",
+              "offset": 0,
+              "slot": "0"
+            }
+          ],
+          "erc7201:openzeppelin.storage.Ownable": [
+            {
+              "contract": "OwnableUpgradeable",
+              "label": "_owner",
+              "type": "t_address",
+              "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:24",
+              "offset": 0,
+              "slot": "0"
+            }
+          ],
+          "erc7201:openzeppelin.storage.Initializable": [
+            {
+              "contract": "Initializable",
+              "label": "_initialized",
+              "type": "t_uint64",
+              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:69",
+              "offset": 0,
+              "slot": "0"
+            },
+            {
+              "contract": "Initializable",
+              "label": "_initializing",
+              "type": "t_bool",
+              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:73",
+              "offset": 8,
+              "slot": "0"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

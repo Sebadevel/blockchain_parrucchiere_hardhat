@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SalonBooking DApp - Blockchain Parrucchiere</title>
+  <!-- ethers v6 -->
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6.6.0/dist/ethers.umd.min.js"></script>
+  <style>
+    body {
+      background: #0a0a0a;
+      color: #f2f2f2;
+      font-family: "Inter", sans-serif;
+      text-align: center;
+      padding: 30px;
+    }
+    h1 {
+      color: #00ffc3;
+    }
+    input, button {
+      padding: 10px;
+      margin: 8px;
+      border-radius: 8px;
+      border: none;
+      font-size: 14px;
+    }
+    input {
+      width: 250px;
+    }
+    button {
+      background: #00ffc3;
+      color: #000;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #00cc9c;
+    }
+    #output {
+      margin-top: 20px;
+      color: #00ffc3;
+    }
+  </style>
+</head>
+<body>
+  <h1>💈 Blockchain Parrucchiere 💈</h1>
+  <p>Connetti il tuo wallet su <b>Polygon</b> e prenota il tuo servizio!</p>
+
+  <button id="connectButton">🔗 Connetti Wallet</button>
+  <div id="walletInfo"></div>
+
+  <hr style="margin:30px; border:1px solid #333;">
+
+  <h2>📅 Prenotazione</h2>
+  <input id="service" placeholder="Servizio (es: Taglio Uomo)">
+  <input id="amount" type="number" step="0.001" placeholder="Importo in MATIC">
+  <input id="when" type="datetime-local">
+  <button id="bookBtn">💾 Prenota</button>
+
+  <hr style="margin:30px; border:1px solid #333;">
+
+  <h2>🕓 Gestisci prenotazioni</h2>
+  <input id="bookingId" type="number" placeholder="ID prenotazione">
+  <button id="cancelBtn">❌ Cancella</button>
+  <input id="newWhen" type="datetime-local">
+  <button id="rescheduleBtn">🔁 Sposta</button>
+
+  <div id="output"></div>
+
+  <script>
+    // === CONFIG POLYGON ===
+    const CONTRACT_ADDRESS = "0x1317E9dc0EAE1f3Ef84f1157951D5629E699bC54"; // proxy Polygon
+    const POLYGON_PARAMS = {
+      chainId: "0x89",
+      chainName: "Polygon Mainnet",
+      nativeCurrency: { name: "MATIC", symbol: "MATIC", decimals: 18 },
+      rpcUrls: ["https://polygon-rpc.com"],
+      blockExplorerUrls: ["https://polygonscan.com"]
+    };
+    const EXPLORER_TX = "https://polygonscan.com/tx/";
+  
+    const ABI = [
+      "function book(uint256 when, string service) public payable",
+      "function cancelBooking(uint256 id) public",
+      "function rescheduleBooking(uint256 id, uint256 newWhen) public",
+      "function lastBookingId() view returns (uint256)"
+    ];
+  
+    let provider, signer, contract;
+  
+    function setOutput(msg, isError = false) {
+      const el = document.getElementById("output");
+      if (!el) return;
+      el.style.color = isError ? "#ff6b6b" : "#00ffc3";
+      el.innerHTML = msg;
+      console.log(msg);
+    }
+  
+    async function ensurePolygon() {
+      if (!window.ethereum) {
+        alert("Installa MetaMask per continuare");
+        throw new Error("MetaMask mancante");
+      }
+  
+      const currentChain = await window.ethereum.request({ method: "eth_chainId" });
+      if (currentChain !== "0x89") {
+        try {
+          await window.ethereum.request({
+            method: "wallet_switchEthereumChain",
+            params: [{ chainId: "0x89" }]
+          });
+        } catch (err) {
+          if (err.code === 4902) {
+            await window.ethereum.request({
+              method: "wallet_addEthereumChain",
+              params: [POLYGON_PARAMS]
+            });
+          } else {
+            console.error(err);
+            throw err;
+          }
+        }
+      }
+    }
+  
+    async function connect() {
+      try {
+        console.log("Connect cliccato");
+        await ensurePolygon();
+        await window.ethereum.request({ method: "eth_requestAccounts" });
+        provider = new ethers.BrowserProvider(window.ethereum);
+        signer = await provider.getSigner();
+        contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+        const address = await signer.getAddress();
+        document.getElementById("walletInfo").innerText =
+          "Wallet connesso su Polygon: " + address;
+        setOutput("✅ Wallet connesso e contratto pronto");
+      } catch (err) {
+        console.error(err);
+        setOutput("❌ Errore connessione: " + (err.shortMessage || err.message), true);
+      }
+    }
+  
+    function getUnixFromInput(id) {
+      const val = document.getElementById(id).value;
+      if (!val) return 0;
+      const d = new Date(val);
+      return Math.floor(d.getTime() / 1000);
+    }
+  
+    async function book() {
+      try {
+        if (!contract) await connect();
+        const service = document.getElementById("service").value.trim();
+        const valueMatic = document.getElementById("amount").value;
+        const when = getUnixFromInput("when");
+        if (!service || !valueMatic || !when) {
+          alert("Compila tutti i campi!");
+          return;
+        }
+        setOutput("⏳ Invio prenotazione...");
+        const tx = await contract.book(when, service, {
+          value: ethers.parseEther(valueMatic)
+        });
+        await tx.wait();
+        setOutput(
+          `✅ Prenotazione inviata! TX: <a href="${EXPLORER_TX}${tx.hash}" target="_blank">${tx.hash}</a>`
+        );
+      } catch (err) {
+        console.error(err);
+        setOutput("❌ Errore prenotazione: " + (err.shortMessage || err.message), true);
+      }
+    }
+  
+    async function cancel() {
+      try {
+        if (!contract) await connect();
+        const id = document.getElementById("bookingId").value;
+        if (!id) {
+          alert("Inserisci l'ID!");
+          return;
+        }
+        setOutput("⏳ Annullamento prenotazione...");
+        const tx = await contract.cancelBooking(id);
+        await tx.wait();
+        setOutput(
+          `❌ Prenotazione annullata! TX: <a href="${EXPLORER_TX}${tx.hash}" target="_blank">${tx.hash}</a>`
+        );
+      } catch (err) {
+        console.error(err);
+        setOutput("❌ Errore annullamento: " + (err.shortMessage || err.message), true);
+      }
+    }
+  
+    async function reschedule() {
+      try {
+        if (!contract) await connect();
+        const id = document.getElementById("bookingId").value;
+        const newWhen = getUnixFromInput("newWhen");
+        if (!id || !newWhen) {
+          alert("Inserisci ID e nuova data!");
+          return;
+        }
+        setOutput("⏳ Spostamento prenotazione...");
+        const tx = await contract.rescheduleBooking(id, newWhen);
+        await tx.wait();
+        setOutput(
+          `🔁 Prenotazione aggiornata! TX: <a href="${EXPLORER_TX}${tx.hash}" target="_blank">${tx.hash}</a>`
+        );
+      } catch (err) {
+        console.error(err);
+        setOutput("❌ Errore spostamento: " + (err.shortMessage || err.message), true);
+      }
+    }
+  
+    // Aggancio i bottoni SOLO dopo che il DOM è pronto
+    window.addEventListener("DOMContentLoaded", () => {
+      document.getElementById("connectButton").onclick = connect;
+      document.getElementById("bookBtn").onclick = book;
+      document.getElementById("cancelBtn").onclick = cancel;
+      document.getElementById("rescheduleBtn").onclick = reschedule;
+    });
+  
+    if (window.ethereum) {
+      window.ethereum.on?.("accountsChanged", () => window.location.reload());
+      window.ethereum.on?.("chainChanged", () => window.location.reload());
+    }
+  </script>
+  </body>
+</html>
+

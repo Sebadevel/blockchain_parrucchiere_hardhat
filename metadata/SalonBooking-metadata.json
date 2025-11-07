@@ -1,0 +1,51 @@
+{
+  "name": "SalonBooking V2",
+  "version": "2.0.0",
+  "description": "SalonBooking V2 è un contratto intelligente UUPS-upgradeable su Polygon, creato per gestire prenotazioni, pagamenti e cancellazioni nel progetto Blockchain Parrucchiere.",
+  "project": "Blockchain Parrucchiere",
+  "developer": "Sebastian Muscillo",
+  "license": "MIT",
+  "compiler": {
+    "language": "Solidity",
+    "version": "0.8.24",
+    "optimizer": {
+      "enabled": true,
+      "runs": 200
+    }
+  },
+  "network": {
+    "name": "Polygon Mainnet",
+    "chainId": 137,
+    "explorer": "https://polygonscan.com",
+    "proxyAddress": "0x1317e9dc0eae1f3ef84f1157951d5629e699bc54",
+    "implementationAddress": "0x903b1e4d5a7dbb8bbb10275f9083d3eef2e7ee77"
+  },
+  "source": {
+    "repository": "https://github.com/blockchain-parrucchiere/salonbooking-v2",
+    "contractPath": "contracts/SalonBooking.sol",
+    "type": "UUPSUpgradeable"
+  },
+  "tags": [
+    "Hairdresser",
+    "Salon",
+    "Web3",
+    "Booking",
+    "Polygon",
+    "Upgradeable",
+    "BlockchainParrucchiere"
+  ],
+  "author": {
+    "name": "Sebastian Muscillo",
+    "email": "info@blockchain-parrucchiere.com",
+    "organization": "Blockchain Parrucchiere"
+  },
+  "links": {
+    "website": "https://blockchain-parrucchiere.com",
+    "documentation": "https://blockchain-parrucchiere.com/docs",
+    "polygonscan": "https://polygonscan.com/address/0x1317e9dc0eae1f3ef84f1157951d5629e699bc54",
+    "implementation": "https://polygonscan.com/address/0x903b1e4d5a7dbb8bbb10275f9083d3eef2e7ee77"
+  },
+  "icon": "https://blockchain-parrucchiere.com/assets/logo.png",
+  "status": "verified"
+}
+
