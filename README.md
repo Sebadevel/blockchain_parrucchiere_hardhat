@@ -38,3 +38,4 @@ NETWORK=testnet npx hardhat verify --network sepolia <INDIRIZZO_CONTRATTO> "<SAL
 ## Note sicurezza
 - Non committare `.env`.
 - Tieni la chiave privata al sicuro.
+# blockchain_parrucchiere_hardhat
