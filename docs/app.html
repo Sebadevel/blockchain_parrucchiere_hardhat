@@ -30,6 +30,10 @@
       margin-top: 0;
       margin-bottom: 0.5rem;
     }
+    p.small {
+      font-size: 0.9rem;
+      color: #9ca3af;
+    }
     label {
       display: block;
       margin-top: 0.75rem;
@@ -78,7 +82,7 @@
       border-radius: 12px;
       border: 1px solid #1e293b;
       padding: 10px 12px;
-      max-height: 200px;
+      max-height: 220px;
       overflow-y: auto;
     }
     .badge {
@@ -101,7 +105,7 @@
 <body>
   <div class="card">
     <h1>SalonBooking DApp</h1>
-    <p style="font-size:0.9rem; color:#9ca3af;">
+    <p class="small">
       Connetti MetaMask su Polygon, scegli data/ora e importo (in MATIC), e invia una prenotazione on-chain.
     </p>
 
@@ -128,10 +132,14 @@
   <script>
     const proxyAddress = "0x1317e9dc0eae1f3ef84f1157951d5629e699bc54";
 
-    // ABI minimale: solo le funzioni che ci servono
+    // ABI minimale:
+    // - book()        -> per creare una prenotazione
+    // - bookingsOf()  -> array di ID prenotazioni utente
+    // - bookings()    -> dettagli della singola prenotazione
     const abi = [
       "function book(uint256 when, string note) payable returns (uint256)",
-      "function getUserBookingsWithDetails(address user) view returns (tuple(address user,uint256 when,uint256 amount,bool cancelled)[])"
+      "function bookingsOf(address user) view returns (uint256[] memory)",
+      "function bookings(uint256 id) view returns (address user,uint256 when,uint256 amount,bool cancelled)"
     ];
 
     const connectBtn = document.getElementById("connectBtn");
@@ -153,6 +161,15 @@
       }
     }
 
+    async function ensurePolygonNetwork() {
+      if (!window.ethereum) return;
+      const chainId = await window.ethereum.request({ method: "eth_chainId" });
+      // Polygon mainnet = 0x89
+      if (chainId !== "0x89") {
+        setStatus("Attenzione: sei su chain " + chainId + ". Passa a Polygon (Mainnet) per usare l'app.", "error");
+      }
+    }
+
     async function connectWallet() {
       try {
         if (!window.ethereum) {
@@ -171,6 +188,7 @@
         connectBtn.disabled = true;
 
         setStatus("Wallet connesso: " + currentAccount);
+        await ensurePolygonNetwork();
       } catch (err) {
         console.error(err);
         setStatus("Errore connessione wallet: " + err.message, "error");
@@ -193,7 +211,7 @@
           return;
         }
 
-        const when = Math.floor(new Date(dtInput).getTime() / 1000); // sec
+        const when = Math.floor(new Date(dtInput).getTime() / 1000); // secondi
         const value = ethers.parseEther(amountInput.toString());
 
         setStatus("Invio transazione di prenotazione...");
@@ -205,7 +223,8 @@
         setStatus("Prenotazione confermata! tx: " + tx.hash, "success");
       } catch (err) {
         console.error(err);
-        setStatus("Errore durante la prenotazione: " + (err.info?.error?.message || err.message), "error");
+        const msg = err.info?.error?.message || err.message;
+        setStatus("Errore durante la prenotazione: " + msg, "error");
       }
     }
 
@@ -217,27 +236,37 @@
 
       try {
         setStatus("Carico le tue prenotazioni...");
-        const bookings = await contract.getUserBookingsWithDetails(currentAccount);
 
-        if (!bookings || bookings.length === 0) {
+        // 1. ID delle prenotazioni dell'utente
+        const ids = await contract.bookingsOf(currentAccount);
+
+        if (!ids || ids.length === 0) {
           bookingsList.textContent = "Nessuna prenotazione trovata.";
           setStatus("Nessuna prenotazione trovata.");
           return;
         }
 
+        // 2. Per ogni ID, leggiamo la struct Booking
+        const promises = ids.map((id) => contract.bookings(id));
+        const bookings = await Promise.all(promises);
+
         let html = "";
         const now = Math.floor(Date.now() / 1000);
 
-        bookings.forEach((b, idx) => {
-          const date = new Date(Number(b.when) * 1000);
+        bookings.forEach((b, index) => {
+          const when = Number(b.when);
+          const date = new Date(when * 1000);
           const amountMatic = ethers.formatEther(b.amount);
-          const isPast = Number(b.when) < now;
-          const status = b.cancelled ? "Cancellata" : isPast ? "Passata" : "Futura";
+          const isPast = when < now;
+
+          let stato = "Futura";
+          if (b.cancelled) stato = "Cancellata";
+          else if (isPast) stato = "Passata";
 
           html += `<div style="margin-bottom:8px;">
-            <strong>#${idx + 1}</strong> – ${date.toLocaleString()}<br/>
+            <strong>#${index + 1}</strong> – ${date.toLocaleString()}<br/>
             Importo: ${amountMatic} MATIC<br/>
-            Stato: ${status}
+            Stato: ${stato}
           </div>`;
         });
 
