@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <title>SalonBooking DApp – Blockchain Parrucchiere</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #020617;
+      color: #e5e7eb;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .card {
+      background: #020617;
+      border-radius: 16px;
+      padding: 24px 28px;
+      max-width: 720px;
+      width: 100%;
+      box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.9);
+      border: 1px solid #1e293b;
+    }
+    h1 {
+      font-size: 1.6rem;
+      margin-top: 0;
+      margin-bottom: 0.5rem;
+    }
+    label {
+      display: block;
+      margin-top: 0.75rem;
+      margin-bottom: 0.25rem;
+      font-size: 0.9rem;
+    }
+    input {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid #1e293b;
+      background: #020617;
+      color: #e5e7eb;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: none;
+      font-size: 0.95rem;
+      cursor: pointer;
+      background: #22c55e;
+      color: #022c22;
+      font-weight: 600;
+    }
+    button.secondary {
+      background: #0ea5e9;
+      color: #0b1120;
+      margin-left: 8px;
+    }
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    .status {
+      margin-top: 0.75rem;
+      font-size: 0.85rem;
+      color: #a5b4fc;
+      min-height: 1.1em;
+      white-space: pre-wrap;
+    }
+    .list {
+      margin-top: 1.5rem;
+      font-size: 0.85rem;
+      background: #020617;
+      border-radius: 12px;
+      border: 1px solid #1e293b;
+      padding: 10px 12px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      margin-left: 6px;
+    }
+    .badge.ok {
+      background: #22c55e33;
+      color: #4ade80;
+    }
+    .badge.err {
+      background: #f9737333;
+      color: #fca5a5;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>SalonBooking DApp</h1>
+    <p style="font-size:0.9rem; color:#9ca3af;">
+      Connetti MetaMask su Polygon, scegli data/ora e importo (in MATIC), e invia una prenotazione on-chain.
+    </p>
+
+    <button id="connectBtn">Connetti Wallet</button>
+
+    <form id="bookForm">
+      <label for="datetime">Data e ora (locale)</label>
+      <input type="datetime-local" id="datetime" required />
+
+      <label for="amount">Importo (MATIC)</label>
+      <input type="number" id="amount" step="0.001" min="0" required />
+
+      <button type="submit">Prenota ora 💈</button>
+      <button type="button" class="secondary" id="loadBookingsBtn">Le mie prenotazioni</button>
+    </form>
+
+    <div class="status" id="status"></div>
+
+    <div class="list" id="bookingsList"></div>
+  </div>
+
+  <!-- ethers v6 via CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6.11.1/dist/ethers.umd.min.js"></script>
+  <script>
+    const proxyAddress = "0x1317e9dc0eae1f3ef84f1157951d5629e699bc54";
+
+    // ABI minimale: solo le funzioni che ci servono
+    const abi = [
+      "function book(uint256 when, string note) payable returns (uint256)",
+      "function getUserBookingsWithDetails(address user) view returns (tuple(address user,uint256 when,uint256 amount,bool cancelled)[])"
+    ];
+
+    const connectBtn = document.getElementById("connectBtn");
+    const bookForm = document.getElementById("bookForm");
+    const statusEl = document.getElementById("status");
+    const bookingsList = document.getElementById("bookingsList");
+    const loadBookingsBtn = document.getElementById("loadBookingsBtn");
+
+    let provider, signer, contract, currentAccount;
+
+    function setStatus(msg, type = "info") {
+      statusEl.textContent = msg;
+      if (type === "error") {
+        statusEl.style.color = "#fca5a5";
+      } else if (type === "success") {
+        statusEl.style.color = "#bbf7d0";
+      } else {
+        statusEl.style.color = "#a5b4fc";
+      }
+    }
+
+    async function connectWallet() {
+      try {
+        if (!window.ethereum) {
+          setStatus("MetaMask non rilevato. Installa l'estensione per continuare.", "error");
+          return;
+        }
+
+        const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+        currentAccount = accounts[0];
+
+        provider = new ethers.BrowserProvider(window.ethereum);
+        signer = await provider.getSigner();
+        contract = new ethers.Contract(proxyAddress, abi, signer);
+
+        connectBtn.textContent = currentAccount.slice(0, 6) + "..." + currentAccount.slice(-4);
+        connectBtn.disabled = true;
+
+        setStatus("Wallet connesso: " + currentAccount);
+      } catch (err) {
+        console.error(err);
+        setStatus("Errore connessione wallet: " + err.message, "error");
+      }
+    }
+
+    async function submitBooking(event) {
+      event.preventDefault();
+      if (!contract || !currentAccount) {
+        setStatus("Connetti prima il wallet.", "error");
+        return;
+      }
+
+      try {
+        const dtInput = document.getElementById("datetime").value;
+        const amountInput = document.getElementById("amount").value;
+
+        if (!dtInput || !amountInput) {
+          setStatus("Compila data/ora e importo.", "error");
+          return;
+        }
+
+        const when = Math.floor(new Date(dtInput).getTime() / 1000); // sec
+        const value = ethers.parseEther(amountInput.toString());
+
+        setStatus("Invio transazione di prenotazione...");
+        const tx = await contract.book(when, "booking via DApp", { value });
+
+        setStatus("In attesa di conferma... tx hash: " + tx.hash);
+        await tx.wait();
+
+        setStatus("Prenotazione confermata! tx: " + tx.hash, "success");
+      } catch (err) {
+        console.error(err);
+        setStatus("Errore durante la prenotazione: " + (err.info?.error?.message || err.message), "error");
+      }
+    }
+
+    async function loadBookings() {
+      if (!contract || !currentAccount) {
+        setStatus("Connetti prima il wallet.", "error");
+        return;
+      }
+
+      try {
+        setStatus("Carico le tue prenotazioni...");
+        const bookings = await contract.getUserBookingsWithDetails(currentAccount);
+
+        if (!bookings || bookings.length === 0) {
+          bookingsList.textContent = "Nessuna prenotazione trovata.";
+          setStatus("Nessuna prenotazione trovata.");
+          return;
+        }
+
+        let html = "";
+        const now = Math.floor(Date.now() / 1000);
+
+        bookings.forEach((b, idx) => {
+          const date = new Date(Number(b.when) * 1000);
+          const amountMatic = ethers.formatEther(b.amount);
+          const isPast = Number(b.when) < now;
+          const status = b.cancelled ? "Cancellata" : isPast ? "Passata" : "Futura";
+
+          html += `<div style="margin-bottom:8px;">
+            <strong>#${idx + 1}</strong> – ${date.toLocaleString()}<br/>
+            Importo: ${amountMatic} MATIC<br/>
+            Stato: ${status}
+          </div>`;
+        });
+
+        bookingsList.innerHTML = html;
+        setStatus("Prenotazioni aggiornate.");
+      } catch (err) {
+        console.error(err);
+        setStatus("Errore nel caricamento delle prenotazioni: " + err.message, "error");
+      }
+    }
+
+    connectBtn.addEventListener("click", connectWallet);
+    bookForm.addEventListener("submit", submitBooking);
+    loadBookingsBtn.addEventListener("click", loadBookings);
+  </script>
+</body>
+</html>
+
