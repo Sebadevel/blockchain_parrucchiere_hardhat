@@ -1,286 +1,338 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8" />
-  <title>SalonBooking DApp – Blockchain Parrucchiere</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SalonBooking DApp 💈</title>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6.6.0/dist/ethers.umd.min.js"></script>
   <style>
     body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #020617;
-      color: #e5e7eb;
-      margin: 0;
-      padding: 0;
-      min-height: 100vh;
+      font-family: "Inter", sans-serif;
+      background-color: #0d1117;
+      color: #e6edf3;
       display: flex;
+      flex-direction: column;
       align-items: center;
-      justify-content: center;
+      padding: 40px 20px;
     }
-    .card {
-      background: #020617;
-      border-radius: 16px;
-      padding: 24px 28px;
-      max-width: 720px;
-      width: 100%;
-      box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.9);
-      border: 1px solid #1e293b;
-    }
+
     h1 {
-      font-size: 1.6rem;
-      margin-top: 0;
-      margin-bottom: 0.5rem;
+      color: #e6edf3;
+      font-size: 26px;
+      text-align: center;
+      margin-bottom: 5px;
     }
-    p.small {
-      font-size: 0.9rem;
-      color: #9ca3af;
+
+    p {
+      text-align: center;
+      color: #8b949e;
+      font-size: 15px;
     }
-    label {
-      display: block;
-      margin-top: 0.75rem;
-      margin-bottom: 0.25rem;
-      font-size: 0.9rem;
-    }
-    input {
-      width: 100%;
-      padding: 8px 10px;
+
+    input, button {
+      font-size: 15px;
+      padding: 10px;
       border-radius: 8px;
-      border: 1px solid #1e293b;
-      background: #020617;
-      color: #e5e7eb;
-    }
-    button {
-      margin-top: 1rem;
-      padding: 8px 14px;
-      border-radius: 999px;
       border: none;
-      font-size: 0.95rem;
+      margin: 8px 0;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    input {
+      background-color: #161b22;
+      color: #e6edf3;
+    }
+
+    button {
       cursor: pointer;
-      background: #22c55e;
-      color: #022c22;
-      font-weight: 600;
+      transition: 0.2s;
     }
-    button.secondary {
-      background: #0ea5e9;
-      color: #0b1120;
-      margin-left: 8px;
+
+    #connectButton {
+      background-color: #238636;
+      color: white;
+      max-width: 500px;
     }
-    button:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
+
+    #bookButton {
+      background-color: #2ea043;
+      color: white;
     }
-    .status {
-      margin-top: 0.75rem;
-      font-size: 0.85rem;
-      color: #a5b4fc;
-      min-height: 1.1em;
-      white-space: pre-wrap;
+
+    #myBookingsButton {
+      background-color: #1f6feb;
+      color: white;
     }
-    .list {
-      margin-top: 1.5rem;
-      font-size: 0.85rem;
-      background: #020617;
-      border-radius: 12px;
-      border: 1px solid #1e293b;
-      padding: 10px 12px;
-      max-height: 220px;
-      overflow-y: auto;
+
+    #status {
+      margin-top: 10px;
+      color: #f85149;
+      text-align: center;
+      white-space: pre-line;
+      font-size: 14px;
     }
+
+    #bookingsList {
+      margin-top: 25px;
+      padding: 10px;
+      background-color: #161b22;
+      border-radius: 8px;
+      width: 100%;
+      max-width: 500px;
+    }
+
+    .booking {
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #30363d;
+    }
+
+    .booking:last-child {
+      border-bottom: none;
+    }
+
+    .booking-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
     .badge {
-      display: inline-block;
-      padding: 2px 6px;
+      font-size: 12px;
+      padding: 2px 8px;
       border-radius: 999px;
-      font-size: 0.7rem;
-      margin-left: 6px;
     }
-    .badge.ok {
-      background: #22c55e33;
-      color: #4ade80;
+
+    .badge.future {
+      background-color: #1f6feb33;
+      color: #58a6ff;
     }
-    .badge.err {
-      background: #f9737333;
-      color: #fca5a5;
+
+    .badge.done {
+      background-color: #2ea04333;
+      color: #3fb950;
+    }
+
+    .badge.cancelled {
+      background-color: #f8514933;
+      color: #f85149;
+    }
+
+    .cancel-btn {
+      background-color: #f85149;
+      color: white;
+      font-size: 13px;
+      padding: 6px 10px;
+      width: auto;
+      border-radius: 999px;
+    }
+
+    footer {
+      margin-top: 30px;
+      font-size: 13px;
+      color: #8b949e;
+      text-align: center;
+    }
+
+    .fee-note {
+      color: #58a6ff;
+      font-size: 14px;
+      text-align: center;
+      margin-top: 15px;
     }
   </style>
 </head>
 <body>
-  <div class="card">
-    <h1>SalonBooking DApp</h1>
-    <p class="small">
-      Connetti MetaMask su Polygon, scegli data/ora e importo (in MATIC), e invia una prenotazione on-chain.
-    </p>
+  <h1>SalonBooking DApp 💈</h1>
+  <p>Connetti MetaMask su Polygon, scegli data/ora e importo (in MATIC), e invia una prenotazione on-chain.</p>
 
-    <button id="connectBtn">Connetti Wallet</button>
+  <button id="connectButton">Connetti Wallet</button>
 
-    <form id="bookForm">
-      <label for="datetime">Data e ora (locale)</label>
-      <input type="datetime-local" id="datetime" required />
+  <div style="max-width:500px; width:100%; margin-top:20px;">
+    <label>Data e ora (locale)</label>
+    <input id="datetime" type="datetime-local">
 
-      <label for="amount">Importo (MATIC)</label>
-      <input type="number" id="amount" step="0.001" min="0" required />
+    <label>Importo (MATIC)</label>
+    <input id="amount" type="number" step="0.001" placeholder="0.01">
 
-      <button type="submit">Prenota ora 💈</button>
-      <button type="button" class="secondary" id="loadBookingsBtn">Le mie prenotazioni</button>
-    </form>
+    <button id="bookButton">Prenota ora 💈</button>
+    <button id="myBookingsButton">Le mie prenotazioni</button>
 
-    <div class="status" id="status"></div>
+    <div class="fee-note">💰 Fee del 3% a favore della piattaforma su ogni prenotazione e cancellazione.</div>
 
-    <div class="list" id="bookingsList"></div>
+    <div id="status"></div>
+    <div id="bookingsList"></div>
   </div>
 
-  <!-- ethers v6 via CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/ethers@6.11.1/dist/ethers.umd.min.js"></script>
-  <script>
-    const proxyAddress = "0x1317e9dc0eae1f3ef84f1157951d5629e699bc54";
+  <footer>© 2025 Sebastian Muscillo — Blockchain Parrucchiere 💈</footer>
 
-    // ABI minimale:
-    // - book()        -> per creare una prenotazione
-    // - bookingsOf()  -> array di ID prenotazioni utente
-    // - bookings()    -> dettagli della singola prenotazione
-    const abi = [
+  <script>
+    const CONTRACT_ADDRESS = "0x1317e9dc0eae1f3ef84f1157951d5629e699bc54"; // Proxy su Polygon
+
+    // ABI minimale per V3: book, cancelBooking, lettura prenotazioni, feeBps
+    const ABI = [
       "function book(uint256 when, string note) payable returns (uint256)",
+      "function cancelBooking(uint256 id)",
+      "function bookings(uint256 id) view returns (address user, uint256 when, uint256 amount, bool cancelled)",
       "function bookingsOf(address user) view returns (uint256[] memory)",
-      "function bookings(uint256 id) view returns (address user,uint256 when,uint256 amount,bool cancelled)"
+      "function feeBps() view returns (uint256)"
     ];
 
-    const connectBtn = document.getElementById("connectBtn");
-    const bookForm = document.getElementById("bookForm");
-    const statusEl = document.getElementById("status");
-    const bookingsList = document.getElementById("bookingsList");
-    const loadBookingsBtn = document.getElementById("loadBookingsBtn");
+    let provider, signer, contract;
 
-    let provider, signer, contract, currentAccount;
+    const connectButton = document.getElementById("connectButton");
+    const bookButton = document.getElementById("bookButton");
+    const myBookingsButton = document.getElementById("myBookingsButton");
+    const statusDiv = document.getElementById("status");
+    const listDiv = document.getElementById("bookingsList");
 
     function setStatus(msg, type = "info") {
-      statusEl.textContent = msg;
-      if (type === "error") {
-        statusEl.style.color = "#fca5a5";
-      } else if (type === "success") {
-        statusEl.style.color = "#bbf7d0";
-      } else {
-        statusEl.style.color = "#a5b4fc";
-      }
+      statusDiv.textContent = msg;
+      if (type === "error") statusDiv.style.color = "#f85149";
+      else if (type === "success") statusDiv.style.color = "#3fb950";
+      else statusDiv.style.color = "#8b949e";
     }
 
-    async function ensurePolygonNetwork() {
-      if (!window.ethereum) return;
-      const chainId = await window.ethereum.request({ method: "eth_chainId" });
-      // Polygon mainnet = 0x89
-      if (chainId !== "0x89") {
-        setStatus("Attenzione: sei su chain " + chainId + ". Passa a Polygon (Mainnet) per usare l'app.", "error");
-      }
-    }
-
-    async function connectWallet() {
+    // Connetti wallet + mostra feeBps dinamica
+    connectButton.onclick = async () => {
       try {
-        if (!window.ethereum) {
-          setStatus("MetaMask non rilevato. Installa l'estensione per continuare.", "error");
-          return;
-        }
+        if (!window.ethereum) return alert("Installa MetaMask!");
 
-        const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
-        currentAccount = accounts[0];
-
+        await window.ethereum.request({ method: "eth_requestAccounts" });
         provider = new ethers.BrowserProvider(window.ethereum);
         signer = await provider.getSigner();
-        contract = new ethers.Contract(proxyAddress, abi, signer);
+        contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
 
-        connectBtn.textContent = currentAccount.slice(0, 6) + "..." + currentAccount.slice(-4);
-        connectBtn.disabled = true;
+        const addr = await signer.getAddress();
+        connectButton.textContent = addr.slice(0, 6) + "..." + addr.slice(-4);
+        connectButton.disabled = true;
 
-        setStatus("Wallet connesso: " + currentAccount);
-        await ensurePolygonNetwork();
+        const fee = await contract.feeBps();
+        document.querySelector(".fee-note").textContent =
+          `💰 Fee attuale: ${(Number(fee) / 100).toFixed(2)}% a favore della piattaforma su ogni prenotazione e cancellazione.`;
+
+        setStatus("Wallet connesso.", "success");
       } catch (err) {
         console.error(err);
-        setStatus("Errore connessione wallet: " + err.message, "error");
+        setStatus("Errore connessione wallet.", "error");
       }
-    }
+    };
 
-    async function submitBooking(event) {
-      event.preventDefault();
-      if (!contract || !currentAccount) {
-        setStatus("Connetti prima il wallet.", "error");
-        return;
-      }
-
+    // Prenotazione
+    bookButton.onclick = async () => {
       try {
-        const dtInput = document.getElementById("datetime").value;
-        const amountInput = document.getElementById("amount").value;
+        if (!contract) return alert("Connetti prima MetaMask!");
 
-        if (!dtInput || !amountInput) {
-          setStatus("Compila data/ora e importo.", "error");
-          return;
+        const dtValue = document.getElementById("datetime").value;
+        const when = Math.floor(new Date(dtValue).getTime() / 1000);
+        const amount = document.getElementById("amount").value;
+
+        if (!when || isNaN(when)) {
+          return setStatus("Inserisci una data valida.", "error");
+        }
+        if (when < Date.now() / 1000 + 600) {
+          return setStatus("La data deve essere almeno 10 minuti nel futuro.", "error");
+        }
+        if (!amount || Number(amount) <= 0) {
+          return setStatus("Inserisci un importo maggiore di 0.", "error");
         }
 
-        const when = Math.floor(new Date(dtInput).getTime() / 1000); // secondi
-        const value = ethers.parseEther(amountInput.toString());
+        setStatus("⏳ Invio prenotazione...");
+        const tx = await contract.book(when, "prenotazione on-chain", {
+          value: ethers.parseEther(amount.toString())
+        });
 
-        setStatus("Invio transazione di prenotazione...");
-        const tx = await contract.book(when, "booking via DApp", { value });
-
-        setStatus("In attesa di conferma... tx hash: " + tx.hash);
         await tx.wait();
-
-        setStatus("Prenotazione confermata! tx: " + tx.hash, "success");
+        setStatus("✅ Prenotazione inviata con successo!", "success");
       } catch (err) {
         console.error(err);
-        const msg = err.info?.error?.message || err.message;
-        setStatus("Errore durante la prenotazione: " + msg, "error");
+        setStatus("❌ Errore nella prenotazione: " + (err.info?.error?.message || err.message || err), "error");
       }
-    }
+    };
 
-    async function loadBookings() {
-      if (!contract || !currentAccount) {
-        setStatus("Connetti prima il wallet.", "error");
-        return;
-      }
-
+    // Carica le prenotazioni dell'utente
+    myBookingsButton.onclick = async () => {
       try {
-        setStatus("Carico le tue prenotazioni...");
+        if (!contract) return alert("Connetti prima MetaMask!");
+        setStatus("📦 Caricamento prenotazioni...");
+        listDiv.innerHTML = "";
 
-        // 1. ID delle prenotazioni dell'utente
-        const ids = await contract.bookingsOf(currentAccount);
+        const addr = await signer.getAddress();
+        const ids = await contract.bookingsOf(addr);
 
-        if (!ids || ids.length === 0) {
-          bookingsList.textContent = "Nessuna prenotazione trovata.";
+        if (ids.length === 0) {
           setStatus("Nessuna prenotazione trovata.");
           return;
         }
 
-        // 2. Per ogni ID, leggiamo la struct Booking
-        const promises = ids.map((id) => contract.bookings(id));
-        const bookings = await Promise.all(promises);
+        const nowSec = Math.floor(Date.now() / 1000);
 
-        let html = "";
-        const now = Math.floor(Date.now() / 1000);
+        for (let i = 0; i < ids.length; i++) {
+          const id = ids[i];
+          const b = await contract.bookings(id);
+          const dateStr = new Date(Number(b.when) * 1000).toLocaleString();
+          const netMatic = (Number(b.amount) / 1e18).toFixed(3);
 
-        bookings.forEach((b, index) => {
-          const when = Number(b.when);
-          const date = new Date(when * 1000);
-          const amountMatic = ethers.formatEther(b.amount);
-          const isPast = when < now;
+          let badgeClass = "future";
+          let statoLabel = "Futura";
+          if (b.cancelled) {
+            badgeClass = "cancelled";
+            statoLabel = "Cancellata";
+          } else if (Number(b.when) <= nowSec) {
+            badgeClass = "done";
+            statoLabel = "Completata/Passata";
+          }
 
-          let stato = "Futura";
-          if (b.cancelled) stato = "Cancellata";
-          else if (isPast) stato = "Passata";
+          const canCancel = !b.cancelled && Number(b.when) > nowSec;
 
-          html += `<div style="margin-bottom:8px;">
-            <strong>#${index + 1}</strong> – ${date.toLocaleString()}<br/>
-            Importo: ${amountMatic} MATIC<br/>
-            Stato: ${stato}
-          </div>`;
-        });
+          const div = document.createElement("div");
+          div.className = "booking";
+          div.innerHTML = `
+            <div class="booking-header">
+              <div>
+                <strong>#${Number(id)}</strong> – ${dateStr}
+                <span class="badge ${badgeClass}">${statoLabel}</span>
+              </div>
+              ${canCancel ? `<button class="cancel-btn" data-id="${Number(id)}">Cancella</button>` : ""}
+            </div>
+            <div>Importo netto on-chain: ${netMatic} MATIC</div>
+          `;
+          listDiv.appendChild(div);
+        }
 
-        bookingsList.innerHTML = html;
         setStatus("Prenotazioni aggiornate.");
       } catch (err) {
         console.error(err);
-        setStatus("Errore nel caricamento delle prenotazioni: " + err.message, "error");
+        setStatus("Errore nel caricamento delle prenotazioni.", "error");
       }
-    }
+    };
 
-    connectBtn.addEventListener("click", connectWallet);
-    bookForm.addEventListener("submit", submitBooking);
-    loadBookingsBtn.addEventListener("click", loadBookings);
+    // Gestione click sul pulsante "Cancella" (event delegation)
+    listDiv.onclick = async (event) => {
+      const btn = event.target.closest(".cancel-btn");
+      if (!btn) return;
+
+      try {
+        if (!contract) return alert("Connetti prima MetaMask!");
+        const id = btn.getAttribute("data-id");
+        if (!id) return;
+
+        const conferma = confirm(`Vuoi davvero cancellare la prenotazione #${id}?`);
+        if (!conferma) return;
+
+        setStatus(`⏳ Cancellazione prenotazione #${id}...`);
+        const tx = await contract.cancelBooking(id);
+        await tx.wait();
+
+        setStatus(`✅ Prenotazione #${id} cancellata con successo.`, "success");
+        myBookingsButton.click(); // ricarica lista
+      } catch (err) {
+        console.error(err);
+        setStatus("Errore nella cancellazione: " + (err.info?.error?.message || err.message || err), "error");
+      }
+    };
   </script>
 </body>
 </html>
