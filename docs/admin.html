@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard Parrucchiere – SalonBooking 💈</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6.6.0/dist/ethers.umd.min.js"></script>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background-color: #0d1117;
+      color: #e6edf3;
+      margin: 0;
+      padding: 24px 12px 40px;
+    }
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 0.25rem;
+    }
+    .subtitle {
+      color: #8b949e;
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+    }
+    button, input {
+      font-size: 0.9rem;
+    }
+    button {
+      border-radius: 999px;
+      border: none;
+      padding: 8px 14px;
+      cursor: pointer;
+      background-color: #238636;
+      color: #fff;
+      margin-right: 8px;
+      margin-top: 4px;
+    }
+    button.secondary {
+      background-color: #1f6feb;
+    }
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    input {
+      background: #161b22;
+      border-radius: 8px;
+      border: 1px solid #30363d;
+      color: #e6edf3;
+      padding: 6px 8px;
+      margin-left: 6px;
+      width: 80px;
+    }
+    .status {
+      margin-top: 10px;
+      font-size: 0.85rem;
+      color: #8b949e;
+      white-space: pre-line;
+    }
+    .status.error {
+      color: #f85149;
+    }
+    .status.success {
+      color: #3fb950;
+    }
+    .badge {
+      display: inline-block;
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 999px;
+      margin-left: 6px;
+    }
+    .badge.owner-ok {
+      background: #23863633;
+      color: #3fb950;
+    }
+    .badge.owner-warn {
+      background: #f8514933;
+      color: #f85149;
+    }
+    .card {
+      margin-top: 16px;
+      background: #161b22;
+      border-radius: 12px;
+      border: 1px solid #30363d;
+      padding: 14px 16px;
+    }
+    .grid-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 10px;
+      margin-top: 8px;
+    }
+    .stat {
+      background: #0d1117;
+      border-radius: 10px;
+      padding: 10px;
+      border: 1px solid #21262d;
+      font-size: 0.85rem;
+    }
+    .stat-title {
+      color: #8b949e;
+      margin-bottom: 4px;
+    }
+    .stat-value {
+      font-size: 1rem;
+    }
+    .list {
+      margin-top: 14px;
+      max-height: 420px;
+      overflow-y: auto;
+      font-size: 0.85rem;
+    }
+    .booking {
+      padding: 8px 0;
+      border-bottom: 1px solid #21262d;
+    }
+    .booking:last-child {
+      border-bottom: none;
+    }
+    .booking-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+    }
+    .chip {
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 999px;
+    }
+    .chip.future {
+      background: #1f6feb33;
+      color: #58a6ff;
+    }
+    .chip.past {
+      background: #2ea04333;
+      color: #3fb950;
+    }
+    .chip.cancelled {
+      background: #f8514933;
+      color: #f85149;
+    }
+    .top-links {
+      margin-top: 10px;
+      font-size: 0.85rem;
+    }
+    .top-links a {
+      color: #58a6ff;
+      text-decoration: none;
+      margin-right: 10px;
+    }
+    .top-links a:hover {
+      text-decoration: underline;
+    }
+    footer {
+      margin-top: 24px;
+      font-size: 0.8rem;
+      color: #8b949e;
+      text-align: center;
+    }
+    label {
+      font-size: 0.8rem;
+      color: #8b949e;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Dashboard Parrucchiere – SalonBooking 💈</h1>
+    <div class="subtitle">
+      Vista amministrativa per il salone: panoramica di tutte le prenotazioni registrate on-chain su Polygon.
+    </div>
+
+    <div class="top-links">
+      <a href="./index.html">← Torna alla Home</a>
+      <a href="./app.html">Apri DApp clienti</a>
+      <a href="./usage.html">Guida per l’uso</a>
+    </div>
+
+    <div style="margin-top:12px;">
+      <button id="connectBtn">Connetti Wallet (owner)</button>
+      <span id="ownerInfo" class="badge">Owner: sconosciuto</span>
+    </div>
+
+    <div class="card">
+      <div>
+        <label>
+          Numero massimo di prenotazioni da caricare:
+          <input id="limitInput" type="number" value="100" min="1" />
+        </label>
+        <button id="loadBtn" class="secondary">Carica prenotazioni</button>
+      </div>
+      <div id="status" class="status"></div>
+
+      <div class="grid-stats" id="statsBox" style="display:none;">
+        <div class="stat">
+          <div class="stat-title">Totale prenotazioni</div>
+          <div class="stat-value" id="statTotal">-</div>
+        </div>
+        <div class="stat">
+          <div class="stat-title">Future</div>
+          <div class="stat-value" id="statFuture">-</div>
+        </div>
+        <div class="stat">
+          <div class="stat-title">Passate</div>
+          <div class="stat-value" id="statPast">-</div>
+        </div>
+        <div class="stat">
+          <div class="stat-title">Cancellate</div>
+          <div class="stat-value" id="statCancelled">-</div>
+        </div>
+        <div class="stat">
+          <div class="stat-title">Netto on-chain (MATIC)</div>
+          <div class="stat-value" id="statNet">-</div>
+        </div>
+      </div>
+
+      <div class="list" id="bookingsList"></div>
+    </div>
+
+    <footer>
+      © 2025 Sebastian Muscillo – Dashboard Parrucchiere • Blockchain Parrucchiere 💈
+    </footer>
+  </div>
+
+  <script>
+    const CONTRACT_ADDRESS = "0x1317e9dc0eae1f3ef84f1157951d5629e699bc54";
+
+    const ABI = [
+      "function owner() view returns (address)",
+      "function lastBookingId() view returns (uint256)",
+      "function bookings(uint256 id) view returns (address user, uint256 when, uint256 amount, bool cancelled)"
+    ];
+
+    let provider, signer, contract;
+
+    const connectBtn   = document.getElementById("connectBtn");
+    const ownerInfo    = document.getElementById("ownerInfo");
+    const loadBtn      = document.getElementById("loadBtn");
+    const limitInput   = document.getElementById("limitInput");
+    const statusEl     = document.getElementById("status");
+    const listEl       = document.getElementById("bookingsList");
+    const statsBox     = document.getElementById("statsBox");
+    const statTotal    = document.getElementById("statTotal");
+    const statFuture   = document.getElementById("statFuture");
+    const statPast     = document.getElementById("statPast");
+    const statCancelled= document.getElementById("statCancelled");
+    const statNet      = document.getElementById("statNet");
+
+    function setStatus(msg, type = "info") {
+      statusEl.textContent = msg;
+      statusEl.className = "status";
+      if (type === "error") statusEl.classList.add("error");
+      if (type === "success") statusEl.classList.add("success");
+    }
+
+    // Connetti wallet + verifica se è l'owner
+    connectBtn.onclick = async () => {
+      try {
+        if (!window.ethereum) {
+          alert("Installa MetaMask per continuare.");
+          return;
+        }
+
+        await window.ethereum.request({ method: "eth_requestAccounts" });
+        provider = new ethers.BrowserProvider(window.ethereum);
+        signer   = await provider.getSigner();
+        contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+
+        const addr   = await signer.getAddress();
+        const owner  = await contract.owner();
+
+        connectBtn.textContent = addr.slice(0, 6) + "..." + addr.slice(-4);
+        connectBtn.disabled = true;
+
+        if (addr.toLowerCase() === owner.toLowerCase()) {
+          ownerInfo.textContent = "Sei l'owner: " + addr.slice(0, 6) + "..." + addr.slice(-4);
+          ownerInfo.className = "badge owner-ok";
+          setStatus("Wallet connesso come owner. Puoi leggere tutte le prenotazioni.", "success");
+        } else {
+          ownerInfo.textContent = "Non sei l'owner del contratto.";
+          ownerInfo.className = "badge owner-warn";
+          setStatus("Wallet connesso, ma non sei l'owner. Puoi SOLO leggere i dati pubblici.", "error");
+        }
+      } catch (err) {
+        console.error(err);
+        setStatus("Errore nella connessione al wallet.", "error");
+      }
+    };
+
+    // Carica prenotazioni (ultima N)
+    loadBtn.onclick = async () => {
+      try {
+        if (!contract) {
+          alert("Connetti prima il wallet.");
+          return;
+        }
+
+        const limitRaw = parseInt(limitInput.value || "0", 10);
+        if (!limitRaw || limitRaw <= 0) {
+          setStatus("Inserisci un numero valido di prenotazioni da caricare.", "error");
+          return;
+        }
+
+        setStatus("⏳ Lettura dati on-chain, attendi...");
+        listEl.innerHTML = "";
+        statsBox.style.display = "none";
+
+        const lastIdBN = await contract.lastBookingId();
+        const lastId   = Number(lastIdBN);
+
+        if (lastId === 0) {
+          setStatus("Nessuna prenotazione trovata (lastBookingId = 0).");
+          return;
+        }
+
+        const limit = Math.min(limitRaw, lastId);
+        const nowSec = Math.floor(Date.now() / 1000);
+
+        let total = 0;
+        let future = 0;
+        let past = 0;
+        let cancelled = 0;
+        let netSum = 0;
+
+        for (let i = lastId; i >= Math.max(lastId - limit + 1, 1); i--) {
+          const b = await contract.bookings(i);
+          if (b.user === ethers.ZeroAddress) {
+            // se mai dovessi avere booking "vuoti"
+            continue;
+          }
+
+          total++;
+          const when = Number(b.when);
+          const amount = Number(b.amount); // in wei
+          const matic = amount / 1e18;
+
+          let stato = "Futura";
+          let chipClass = "future";
+          if (b.cancelled) {
+            stato = "Cancellata";
+            chipClass = "cancelled";
+            cancelled++;
+          } else if (when <= nowSec) {
+            stato = "Passata";
+            chipClass = "past";
+            past++;
+          } else {
+            future++;
+          }
+
+          netSum += matic;
+
+          const dateStr = new Date(when * 1000).toLocaleString();
+          const userShort = b.user.slice(0, 6) + "..." + b.user.slice(-4);
+
+          const div = document.createElement("div");
+          div.className = "booking";
+          div.innerHTML = `
+            <div class="booking-header">
+              <div>
+                <strong>#${i}</strong> – ${dateStr}
+                <span class="chip ${chipClass}">${stato}</span>
+              </div>
+              <div style="font-size:0.75rem; color:#8b949e;">${userShort}</div>
+            </div>
+            <div>Importo netto on-chain: ${matic.toFixed(3)} MATIC</div>
+          `;
+          listEl.appendChild(div);
+        }
+
+        if (total === 0) {
+          setStatus("Nessuna prenotazione trovata nel range selezionato.");
+          return;
+        }
+
+        // aggiorna stats
+        statsBox.style.display = "grid";
+        statTotal.textContent = total.toString();
+        statFuture.textContent = future.toString();
+        statPast.textContent = past.toString();
+        statCancelled.textContent = cancelled.toString();
+        statNet.textContent = netSum.toFixed(3);
+
+        setStatus("Dati aggiornati. Mostrate le ultime " + total + " prenotazioni.");
+      } catch (err) {
+        console.error(err);
+        setStatus("Errore durante il caricamento delle prenotazioni.", "error");
+      }
+    };
+  </script>
+</body>
+</html>
+
