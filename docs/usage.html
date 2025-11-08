@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Come usare il sistema – SalonBooking 💈</title>
+  <style>
+    body {
+      font-family: "Inter", system-ui, sans-serif;
+      background: #0d1117;
+      color: #e6edf3;
+      line-height: 1.7;
+      padding: 40px 15px;
+      max-width: 900px;
+      margin: auto;
+    }
+    h1, h2, h3 {
+      color: #58a6ff;
+    }
+    code {
+      background: #161b22;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 0.9rem;
+    }
+    a {
+      color: #58a6ff;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    .note {
+      background: #161b22;
+      border-left: 3px solid #238636;
+      padding: 10px 15px;
+      margin: 15px 0;
+      color: #9cc9ff;
+      border-radius: 6px;
+    }
+    footer {
+      text-align: center;
+      color: #8b949e;
+      margin-top: 50px;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <h1>💈 Come usare il sistema SalonBooking</h1>
+  <p>Benvenuto nella piattaforma <strong>SalonBooking DApp</strong> — un sistema di prenotazione su blockchain progettato per parrucchieri, saloni e professionisti del benessere.  
+  Tutte le prenotazioni sono registrate sulla rete <strong>Polygon</strong>, sicure, trasparenti e senza intermediari.</p>
+
+  <hr>
+
+  <h2>1️⃣ Introduzione</h2>
+  <p>
+    Il sistema utilizza uno <strong>smart contract UUPS upgradeable</strong> per gestire:
+  </p>
+  <ul>
+    <li>Prenotazioni con pagamento anticipato in MATIC</li>
+    <li>Fee automatica a favore del salone su ogni prenotazione e cancellazione</li>
+    <li>Rimborsi automatici in caso di annullamento</li>
+    <li>Consultazione pubblica delle prenotazioni (solo per l’utente interessato)</li>
+  </ul>
+  <p>
+    Tutto avviene tramite <strong>MetaMask</strong> e il sito ufficiale:
+    <br>
+    👉 <a href="https://sebadevel.github.io/blockchain_parrucchiere_hardhat/app.html" target="_blank">
+      Apri la DApp SalonBooking
+    </a>
+  </p>
+
+  <hr>
+
+  <h2>2️⃣ Per il Parrucchiere (Owner)</h2>
+  <p>
+    Il titolare del salone è l’<strong>owner</strong> del contratto e ha il controllo completo:
+  </p>
+  <ul>
+    <li>Può aggiornare la percentuale di fee e l’indirizzo del treasury</li>
+    <li>Riceve automaticamente una fee su ogni prenotazione e cancellazione</li>
+    <li>Può prelevare fondi con la funzione <code>withdraw(address to, uint256 amount)</code></li>
+  </ul>
+
+  <h3>🔧 Configurazione iniziale</h3>
+  <p>Apri il contratto su Polygonscan:</p>
+  <div class="note">
+    <a href="https://polygonscan.com/address/0x1317e9dc0eae1f3ef84f1157951d5629e699bc54#writeProxyContract" target="_blank">
+      https://polygonscan.com/address/0x1317e9dc0eae1f3ef84f1157951d5629e699bc54
+    </a>
+  </div>
+  <p>Collega MetaMask come owner → sezione <strong>“Write as Proxy”</strong>:</p>
+  <ol>
+    <li>Vai alla funzione <code>setFeeParams</code></li>
+    <li>Inserisci ad esempio:
+      <ul>
+        <li><code>_feeBps</code> = <strong>300</strong> (3%)</li>
+        <li><code>_treasury</code> = <strong>il tuo wallet</strong></li>
+      </ul>
+    </li>
+    <li>Conferma la transazione su MetaMask</li>
+  </ol>
+
+  <p>Ora ogni prenotazione invierà automaticamente una fee del 3% al tuo indirizzo.</p>
+
+  <hr>
+
+  <h2>3️⃣ Per il Cliente (Utente MetaMask)</h2>
+  <p>Ogni cliente può:</p>
+  <ul>
+    <li>Connettere MetaMask al sito</li>
+    <li>Inserire data/ora e importo in MATIC</li>
+    <li>Effettuare la prenotazione cliccando <strong>“Prenota ora 💈”</strong></li>
+    <li>Visualizzare tutte le proprie prenotazioni</li>
+    <li>Annullare una prenotazione futura con <strong>“Cancella”</strong></li>
+  </ul>
+
+  <p>Le prenotazioni sono salvate on-chain, quindi ogni pagamento e cancellazione è tracciabile e trasparente.</p>
+
+  <hr>
+
+  <h2>4️⃣ Configurazioni e Fee</h2>
+  <ul>
+    <li><strong>Booking fee</strong>: 3% al momento della prenotazione (va al treasury)</li>
+    <li><strong>Cancellation fee</strong>: 3% sull’importo rimborsabile se l’utente cancella</li>
+    <li><strong>Rimborso</strong>: automatico in MATIC al wallet dell’utente</li>
+  </ul>
+
+  <div class="note">
+    Tutte le percentuali possono essere modificate dall’owner con la funzione <code>setFeeParams</code>.
+  </div>
+
+  <hr>
+
+  <h2>5️⃣ Esempi pratici</h2>
+
+  <h3>📅 Prenotazione</h3>
+  <ul>
+    <li>L’utente prenota per il 10 novembre 2025 alle 16:00</li>
+    <li>Importo: 0.100 MATIC</li>
+    <li>Il contratto invia subito 0.003 MATIC al treasury</li>
+    <li>Rimane 0.097 MATIC “in deposito” nel contratto</li>
+  </ul>
+
+  <h3>❌ Cancellazione</h3>
+  <ul>
+    <li>L’utente cancella prima dell’orario</li>
+    <li>Il contratto invia un’altra fee di 0.003 MATIC al treasury</li>
+    <li>Rimborsa 0.094 MATIC al cliente</li>
+  </ul>
+
+  <h3>✅ Servizio eseguito</h3>
+  <ul>
+    <li>Nessuna cancellazione → il salone ha già ricevuto la booking fee del 3%</li>
+  </ul>
+
+  <hr>
+
+  <h2>6️⃣ Sicurezza e rete Polygon</h2>
+  <p>
+    La DApp è ospitata su GitHub Pages e funziona esclusivamente tramite MetaMask.
+    I dati sensibili (chiavi, importi, prenotazioni) non transitano su server esterni.
+  </p>
+  <ul>
+    <li>Rete supportata: <strong>Polygon Mainnet (chainId 137)</strong></li>
+    <li>Token utilizzato: <strong>MATIC</strong></li>
+    <li>Contratto proxy: <code>0x1317e9dc0eae1f3ef84f1157951d5629e699bc54</code></li>
+  </ul>
+
+  <hr>
+
+  <footer>
+    © 2025 Sebastian Muscillo – Blockchain Parrucchiere 💈  
+    <br>Progetto open-source disponibile su  
+    <a href="https://github.com/Sebadevel/blockchain_parrucchiere_hardhat" target="_blank">GitHub</a>
+  </footer>
+</body>
+</html>
+
